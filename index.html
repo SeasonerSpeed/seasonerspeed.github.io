@@ -1,1 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DOKK_OS_v5.0 // NETWORK_LINK</title>
+    <style>
+        :root {
+            --os-green: #00ff66;
+            --os-orange: #ff6a00;
+            --os-bg: #030705;
+            --panel-bg: rgba(0, 30, 15, 0.6);
+            --bg-blue: #0A1128;
+            --accent-pink: #FF0055;
+            --white: #FFFFFF;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--os-bg);
+            color: var(--os-green);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- SCREEN SCANLINES EFFECT --- */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            z-index: 99;
+            background-size: 100% 5px;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        /* --- SETUP MODE PANEL --- */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            gap: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .setup-btn {
+            width: 260px;
+            padding: 20px;
+            border: 2px solid var(--os-green);
+            background: transparent;
+            color: var(--os-green);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        .setup-btn:hover { background: rgba(0, 255, 102, 0.1); }
+        
+        .key-input {
+            background: #000;
+            border: 2px solid var(--os-green);
+            color: var(--os-green);
+            padding: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 260px;
+            margin-bottom: 10px;
+        }
+
+        /* --- DOKK ATTACKER PANEL VIEW --- */
+        #attacker-screen {
+            display: none;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100%;
+        }
+
+        nav { display: flex; flex-direction: column; gap: 15px; }
+        .nav-tab {
+            border: 2px solid var(--os-green);
+            background: transparent;
+            color: var(--os-green);
+            padding: 15px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .nav-tab.active { background: var(--os-green); color: var(--os-bg); box-shadow: 0 0 10px var(--os-green); }
+
+        main { display: grid; grid-template-rows: auto 1fr auto; gap: 15px; height: 100%; overflow: hidden;}
+        .top-banner { border: 2px solid var(--os-green); padding: 10px; display: flex; justify-content: space-between; font-size: 0.85rem;}
+        
+        .node-matrix { border: 2px solid var(--os-green); background: rgba(0, 10, 5, 0.9); padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .node-row {
+            display: grid; grid-template-columns: 40px 100px 1fr 60px; align-items: center;
+            padding: 12px; border: 1px solid rgba(0, 255, 102, 0.2); cursor: pointer;
+        }
+        .node-row.selected { border-color: var(--os-orange); color: var(--os-orange); background: rgba(255, 106, 0, 0.1); }
+        .node-check { width: 16px; height: 16px; border: 2px solid var(--os-green); display: flex; align-items: center; justify-content: center; }
+        .selected .node-check { border-color: var(--os-orange); background: var(--os-orange); }
+
+        .action-panel { display: flex; gap: 15px; }
+        .terminal-feed { flex: 1; border: 2px solid var(--os-green); background: #000; height: 70px; padding: 10px; font-size: 0.75rem; overflow: hidden; }
+        .action-btn { width: 220px; height: 70px; border: 2px solid var(--os-green); background: transparent; color: var(--os-green); font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
+        .action-btn.ready { border-color: var(--os-orange); color: var(--os-orange); animation: pulse 1.5s infinite; }
+        .action-btn:active { background: var(--os-orange); color: var(--os-bg); }
+
+        /* --- DEFENDER VIRUS TAKE OVER VIEW --- */
+        #defender-screen {
+            display: none;
+            background-color: var(--bg-blue);
+            height: 100vh;
+            width: 100vw;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            animation: screen-glitch 0.2s infinite steps(2);
+        }
+
+        .gremlin-logo { width: 150px; height: 150px; position: relative; margin-bottom: 30px; animation: logo-twitch 0.4s infinite ease-in-out alternate; }
+        .gremlin-logo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 12px solid var(--white); border-radius: 50%; }
+        .gremlin-face { position: absolute; top: 35px; left: 25px; width: 100px; height: 80px; }
+        .gremlin-face::before, .gremlin-face::after { content: ''; position: absolute; background-color: var(--white); width: 26px; height: 26px; transform: rotate(45deg); top: 12px; }
+        .gremlin-face::before { left: 10px; } .gremlin-face::after { right: 10px; }
+        .gremlin-mouth {
+            position: absolute; bottom: 0; left: 20px; width: 60px; height: 18px;
+            background: linear-gradient(90deg, var(--white) 0%, var(--white) 15%, transparent 15%, transparent 28%, var(--white) 28%, var(--white) 43%, transparent 43%, transparent 57%, var(--white) 57%, var(--white) 72%, transparent 72%, transparent 85%, var(--white) 85%, var(--white) 100%);
+        }
+
+        .warning-text { color: var(--white); font-size: 5.5rem; font-weight: 900; text-shadow: 4px 0px 0px var(--accent-pink), -4px 0px 0px #00FFFF; animation: text-shake 0.1s infinite linear; }
+        .sub-text { color: var(--white); font-size: 1rem; margin-top: 10px; letter-spacing: 10px; opacity: 0.8; }
+
+        @keyframes screen-glitch { 0%, 100% { background-color: #0c1530; } 50% { background-color: #050b1c; filter: brightness(1.1); } }
+        @keyframes logo-twitch { 0%, 100% { transform: scale(1); filter: invert(0); } 33% { transform: scale(1.08) skew(10deg); filter: invert(1); } }
+        @keyframes text-shake { 0% { transform: translate(0px, 0px); } 50% { transform: translate(-2px, 1px); } 100% { transform: translate(2px, -1px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    </style>
+    <!-- PeerJS abstracts WebRTC framework so devices cleanly route handshake tunnels over public cellular or Wi-Fi -->
+    <script src="https://cloudflare.com"></script>
+</head>
+<body>
+
+    <!-- STAGE 0: DEVICE SETUP SELECTION -->
+    <div id="setup-screen">
+        <h2 style="letter-spacing:3px; margin-bottom:10px;">SELECT OPERATIONAL NODE</h2>
+        <button class="setup-btn" onclick="initAttacker()">[ ATTACH AS DOKK ]</button>
+        <div style="margin: 15px 0; opacity:0.4;">-- OR --</div>
+        <input type="text" id="joinKey" class="key-input" placeholder="ENTER ATTACKER KEY">
+        <button class="setup-btn" style="border-color: var(--os-orange); color: var(--os-orange);" onclick="initDefender()">[ ATTACH AS DEFENDER ]</button>
+        <p id="setup-status" style="font-size:0.85rem; margin-top:20px; opacity:0.7;"></p>
+    </div>
+
+    <!-- STAGE 1: DOKK'S EXPLOIT DASHBOARD -->
+    <div id="attacker-screen">
+        <nav>
+            <button class="nav-tab">CAMS</button>
+            <button class="nav-tab">DRONES</button>
+            <button class="nav-tab active">HACKING</button>
+        </nav>
+        <main>
+            <div class="top-banner">
+                <div>SYS_LINK: ACTIVE_TUNNEL</div>
+                <div style="color:var(--os-orange)" id="peerStatus">WAITING FOR TARGET LINK...</div>
+            </div>
+            <div class="node-matrix" id="matrixContainer"></div>
+            <div class="action-panel">
+                <div class="terminal-feed" id="terminalFeed">
+                    <div>> INITIALIZING MALWARE FRAMEWORK INJECTOR...</div>
+                </div>
+                <button class="action-btn" id="triggerBtn" disabled>SELECT NODE</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- STAGE 2: SCREEN-ACCURATE VIRUS TAKEOVER LAYER -->
+    <div id="defender-screen">
+        <div class="gremlin-logo"><div class="gremlin-face"><div class="gremlin-mouth"></div></div></div>
+        <h1 class="warning-text">까불지마</h1>
+        <div class="sub-text">VIRUS INTRUSION DETECTION</div>
+    </div>
+
+    <script>
+        let peer = null;
+        let conn = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBeep(freq, duration, type = 'sine') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // --- ATTACKER DEV ENVIRONMENT MODE ---
+        function initAttacker() {
+Use code with caution.
+document.getElementById('setup-status').innerText = "Generating encryption signature node...";
+peer = new Peer();
+peer.on('open', (id) => {
+// Generates a clean 4-digit token key room ID
+const shortenedKey = id.slice(0,4).toUpperCase();
+// Override PeerJS internally to map connections to the shorter token sequence
+peer._id = shortenedKey;
+document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-orange)">ATTACKER KEY GENERATED</h2> <div style="font-size:3.5rem; font-weight:900; background:#000; padding:20px; border:2px dashed var(--os-green); margin:20px 0;">${shortenedKey}</div> <p style="font-size:0.9rem; opacity:0.8;">Enter this key code exactly on the Defender's device to hook them.</p>;
+});
+peer.on('connection', (connection) => {
+conn = connection;
+setupAttackerUI();
+});
+}
+function setupAttackerUI() {
+document.getElementById('setup-screen').style.display = 'none';
+document.getElementById('attacker-screen').style.display = 'grid';
+document.getElementById('peerStatus').innerText = "🟢 TARGET HOOKED SUCCESSFULLY";
+playBeep(880, 0.2, 'square');
+const container = document.getElementById('matrixContainer');
+container.innerHTML = <div class="node-row" id="targetNode"> <div class="node-check"></div> <div><strong>NODE_01</strong></div> <div>OP_DEFENDER_REPLICA</div> <div style="text-align:right; font-weight:bold;">-34dBm</div> </div>;
+const row = document.getElementById('targetNode');
+const triggerBtn = document.getElementById('triggerBtn');
+row.addEventListener('click', () => {
+playBeep(700, 0.05, 'sine');
+row.classList.toggle('selected');
+if(row.classList.contains('selected')) {
+triggerBtn.disabled = false; triggerBtn.innerText = "LOGIC BOMB"; triggerBtn.classList.add('ready');
+logFeed("TARGET ROUTE RESOLVED. LOGIC BOMB HANDSHAKE ARMED.");
+} else {
+triggerBtn.disabled = true; triggerBtn.innerText = "SELECT NODE"; triggerBtn.classList.remove('ready');
+}
+});
+triggerBtn.addEventListener('click', () => {
+logFeed("EXECUTING INTRUSIVE LOGIC BOMB SEQUENCE...");
+conn.send('FIRE_VIRUS');
+let count = 0;
+let t = setInterval(() => {
+playBeep(640, 0.1, 'sawtooth');
+count++; if(count >= 3) clearInterval(t);
+}, 200);
+});
+}
+function logFeed(msg) {
+const f = document.getElementById('terminalFeed');
+f.innerHTML += <div>> ${msg}</div>;
+if (f.childNodes.length > 4) f.removeChild(f.firstChild);
+}
+// --- DEFENDER TARGET ENVIRONMENT MODE ---
+function initDefender() {
+const key = document.getElementById('joinKey').value.trim().toUpperCase();
+if(!key) return alert("Please present a valid Attacker room signature key token.");
+document.getElementById('setup-status').innerText = "Routing proxy node bypass tunnel...";
+peer = new Peer();
+peer.on('open', () => {
+const connection = peer.connect(key);
+connection.on('open', () => {
+document.getElementById('setup-screen').innerHTML = <h2 class="status-pulse" style="color:var(--os-green)">NODE HOOKED</h2> <p style="margin-top:15px; opacity:0.7;">System backend running silently. Awaiting incoming network data packages...</p>;
+// Authenticates web audio API profile interaction rules
+playBeep(440, 0.1, 'sine');
+});
+connection.on('data', (data) => {
+if(data === 'FIRE_VIRUS') {
+triggerDefTakeover();
+}
+});
+});
+}
+function triggerDefTakeover() {
+document.getElementById('setup-screen').style.display = 'none';
+document.getElementById('defender-screen').style.display = 'flex';
+// Execute physical browser vibrator module hardware if supported on device
+if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+// Audio Payload Synthesis: Emulates her heavy intrusive electronic screeching loop ringtone feedback
+let ringCount = 0;
+function runAudioLoop() {
+if(ringCount > 5) return; // Cap loop cycles
+// Screech Tone
+playBeep(1200, 0.25, 'sawtooth');
+setTimeout(() => playBeep(900, 0.15, 'square'), 100);
+ringCount++;
+setTimeout(runAudioLoop, 1200);
+}
+runAudioLoop();
+}
+
+
+
+### 📱 Steps to Run & Deploy
+1. **Host the Code for Free:** Go to [GitHub Pages](https://github.com) or [Vercel](https://vercel.com), upload this `index.html` file, and get your public link. 
+2. **Open on Phone A:** Hit **[ ATTACH AS DOKK ]**, then copy down the 4-digit code generated.
+3. **Open on Phone B:** Type the code from Phone A into the box, and tap **[ ATTACH AS DEFENDER ]**. 
+4. **Initiate the Hack:** On Phone A, click the defender row in your grid matrix, then smash **LOGIC BOMB**. Phone B will immediately transform into Dokkaebi's flashing screen.
+
+<FollowUp>
+Would you like me to add code for a **"Turn Off Call" mini-game button** on the Defender side so they have to hold down a clear button for 3 seconds to wipe the virus away, just like inside Rainbow Six Siege?
+</FollowUp>
+AI responses may include mistakes. Learn more
+
+ok just keep coding now. add as much as you can while keeping it as accurate as possible
+
+Here is the complete, production-grade overhaul of Dokk OS. This update transitions the code from a proof-of-concept into a comprehensive simulation of her tactical loadout.
+
+🌟 New Features Built-In
+
+1. Interactive Reset Cycle (Defender Mini-Game): When a Logic Bomb strikes, the defender's screen locks completely. To break the hack, they must press and hold a "HANG UP" button for a full 3 seconds. A live radial system-wipe progress bar tracks their interaction, mimicking the exact time-cost penalty from Rainbow Six Siege.
+2. Dynamic Live Sound FX Loop: The Web Audio API synthesizer engine has been heavily expanded to dynamically generate her screen-accurate hacking frequencies, buzzes, and rhythmic buzzing loop structures locally without any audio delays or dependencies on external files.
+3. Fully Functional Sidebar Framework: Tabs are no longer aesthetic placeholders. Toggling CAMS opens an automated tactical network surveillance grid where you can tap individual nodes to pull up operational video streams. Toggling DRONE initializes an active telemetry scanning loop.
+4. Enhanced Hardware Haptics & Visual Noise: Employs intense CSS matrix spatial warping, random multi-colored flashing anomaly overflows, and deeper device system vibration arrays.
+
+📄 Complete Screen-Accurate index.html
+
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DOKK_OS_v6.0 // OPERATIONAL_COMMAND</title>
+    <style>
+        :root {
+            --os-green: #00ff66;
+            --os-orange: #ff6a00;
+            --os-bg: #030705;
+            --panel-bg: rgba(0, 30, 15, 0.6);
+            --bg-blue: #0A1128;
+            --accent-pink: #FF0055;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--os-bg);
+            color: var(--os-green);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- SCREEN SCANLINES OVERLAY --- */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            z-index: 999;
+            background-size: 100% 5px;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        /* --- STAGE 0: DEVICE SETUP SELECTION --- */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            gap: 20px;
+            padding: 40px;
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .setup-btn {
+            width: 280px;
+            padding: 20px;
+            border: 2px solid var(--os-green);
+            background: transparent;
+            color: var(--os-green);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
+        }
+
+        .setup-btn:hover { background: rgba(0, 255, 102, 0.1); box-shadow: 0 0 15px var(--os-green); }
+        
+        .key-input {
+            background: #000;
+            border: 2px solid var(--os-green);
+            color: var(--os-green);
+            padding: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 280px;
+            margin-bottom: 10px;
+        }
+
+        /* --- DOKK ATTACKER PANEL VIEW --- */
+        #attacker-screen {
+            display: none;
+            grid-template-columns: 220px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100%;
+        }
+
+        nav { display: flex; flex-direction: column; gap: 15px; }
+        .nav-tab {
+            border: 2px solid var(--os-green);
+            background: transparent;
+            color: var(--os-green);
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+        .nav-tab.active { background: var(--os-green); color: var(--os-bg); box-shadow: 0 0 15px var(--os-green); }
+
+        main { display: grid; grid-template-rows: auto 1fr auto; gap: 15px; height: 100%; overflow: hidden;}
+        .top-banner { border: 2px solid var(--os-green); padding: 12px 20px; display: flex; justify-content: space-between; font-size: 0.9rem; background: var(--panel-bg); }
+        
+        /* Inner Container Panels */
+        .content-panel { display: none; height: 100%; overflow: hidden; }
+        .content-panel.active { display: block; }
+
+        .node-matrix { border: 2px solid var(--os-green); background: rgba(0, 10, 5, 0.9); padding: 20px; display: flex; flex-direction: column; gap: 12px; height: 100%; overflow-y: auto; }
+        .node-row {
+            display: grid; grid-template-columns: 50px 140px 1fr 120px 80px; align-items: center;
+            padding: 15px; border: 1px solid rgba(0, 255, 102, 0.2); background: rgba(0, 20, 10, 0.3); cursor: pointer;
+        }
+        .node-row.selected { border-color: var(--os-orange); color: var(--os-orange); background: rgba(255, 106, 0, 0.15); }
+        .node-check { width: 20px; height: 20px; border: 2px solid var(--os-green); display: flex; align-items: center; justify-content: center; }
+        .selected .node-check { border-color: var(--os-orange); background: var(--os-orange); }
+
+        /* Surveillance Subsystem */
+        .cams-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; height: 100%; }
+        .cam-feed { border: 2px solid var(--os-green); background: #000; position: relative; display: flex; justify-content: center; align-items: center; font-weight: bold; overflow: hidden; cursor: pointer; }
+        .cam-feed.compromised { border-color: var(--os-orange); color: var(--os-orange); }
+        .cam-static { position: absolute; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #111, #111 2px, #222 2px, #222 4px); opacity: 0.15; animation: static-roll 1s infinite linear; }
+        .cam-label { position: absolute; top: 10px; left: 10px; font-size: 0.8rem; background: rgba(0,0,0,0.7); padding: 2px 6px; z-index: 5; }
+
+        /* Lower Action Framework */
+        .action-panel { display: flex; gap: 20px; }
+        .terminal-feed { flex: 1; border: 2px solid var(--os-green); background: #000; height: 80px; padding: 12px; font-size: 0.8rem; overflow: hidden; line-height: 1.4; }
+        .action-btn { width: 260px; height: 80px; border: 2px solid var(--os-green); background: transparent; color: var(--os-green); font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
+        .action-btn.ready { border-color: var(--os-orange); color: var(--os-orange); box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); animation: pulse 1.5s infinite; }
+        .action-btn:active, .action-btn.active-click { background: var(--os-orange); color: var(--os-bg); box-shadow: 0 0 25px var(--os-orange); }
+
+        /* --- DEFENDER VIRUS TAKE OVER VIEW --- */
+        #defender-screen {
+            display: none;
+            background-color: var(--bg-blue);
+            height: 100vh;
+            width: 100vw;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            position: absolute;
+            top: 0; left: 0;
+            animation: screen-glitch 0.2s infinite steps(2);
+        }
+
+        .gremlin-logo { width: 160px; height: 160px; position: relative; margin-bottom: 20px; animation: logo-twitch 0.4s infinite ease-in-out alternate; }
+        .gremlin-logo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 12px solid var(--white); border-radius: 50%; }
+        .gremlin-face { position: absolute; top: 35px; left: 25px; width: 110px; height: 80px; }
+        .gremlin-face::before, .gremlin-face::after { content: ''; position: absolute; background-color: var(--white); width: 28px; height: 28px; transform: rotate(45deg); top: 12px; }
+        .gremlin-face::before { left: 12px; } .gremlin-face::after { right: 12px; }
+        .gremlin-mouth {
+            position: absolute; bottom: 0; left: 20px; width: 65px; height: 18px;
+            background: linear-gradient(90deg, var(--white) 0%, var(--white) 15%, transparent 15%, transparent 28%, var(--white) 28%, var(--white) 43%, transparent 43%, transparent 57%, var(--white) 57%, var(--white) 72%, transparent 72%, transparent 85%, var(--white) 85%, var(--white) 100%);
+        }
+
+        .warning-text { color: var(--white); font-size: 6rem; font-weight: 900; text-shadow: 5px 0px 0px var(--accent-pink), -5px 0px 0px #00FFFF; animation: text-shake 0.1s infinite linear; }
+        .sub-text { color: var(--white); font-size: 1.1rem; margin-top: 10px; letter-spacing: 12px; opacity: 0.85; padding-left: 12px; text-transform: uppercase; font-weight: bold;}
+
+        /* Defender Device Wipe/Hold Mini-game Control */
+        .hangup-container { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; }
+        .hangup-btn {
+            width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--white); background: var(--accent-pink);
+            color: var(--white); font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 20px var(--accent-pink); transition: transform 0.1s; z-index: 10;
+        }
+        .hangup-btn:active { transform: scale(0.92); }
+        
+        .progress-svg { position: absolute; top: -10px; left: -10px; width: 110px; height: 110px; transform: rotate(-90deg); pointer-events: none; }
+        .progress-circle { stroke: var(--white); stroke-width: 6; fill: transparent; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.05s linear; }
+
+        /* --- GLOBAL ANIMATIONS --- */
+        @keyframes screen-glitch { 0%, 100% { background-color: #0c1530; filter: contrast(1); } 50% { background-color: #050b1c; filter: contrast(1.25) brightness(1.15); } }
+        @keyframes logo-twitch { 0%, 100% { transform: scale(1) skew(0deg); filter: invert(0); } 33% { transform: scale(1.1) skew(12deg); filter: invert(1); } 66% { transform: scale(0.95) translateY(-3px); } }
+        @keyframes text-shake { 0% { transform: translate(0px, 0px); } 25% { transform: translate(-3px, 1px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-1px, 2px); } 100% { transform: translate(0px, 0px); } }
+        @keyframes static-roll { 0% { background-position: 0 0; } 100% { background-position: 0 100px; } }
+Use code with caution.
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+.status-pulse { animation: text-blink 1.5s infinite; }
+@keyframes text-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+
+
+SELECT DEVICE PARITY MODE
+[ ATTACH AS DOKK ]
+OR
+
+[ ATTACH AS DEFENDER ]
+
+CAMS
+DRONES
+HACKING
+
+
+
+SYS_LINK: DATA_TUNNEL_PROXY_v6.0
+AWAITING HANDSHAKE OVER-THE-AIR LINK...
+PING: 34ms
+🎥 CCTV_MAIN_CORRIDOR [HIJACKED]📱 SYSTEM STREAM INTERCEPTED
+🎥 CCTV_VAULT_ENTRY🔒 SECURE ARCHIVE FEED LINK [ENCRYPTED]
+🎥 CCTV_GARAGE_RAMP [HIJACKED]📱 SYSTEM STREAM INTERCEPTED
+🎥 CCTV_BOMB_SITE_A🔒 SECURE ARCHIVE FEED LINK [ENCRYPTED]
+
+🛰️ DRONE_FEED_DRIVERS: STANDING BY
+Active telemetry scanner pipeline loaded. Link to active Shock Drone or Twitch platform configuration blocks to expand mapping grid overlay.
+
+> INITIALIZING MALWARE DATA INJECTOR SECTOR PACKETS...
+
+SELECT NODE
+
+
+까불지마
+Logic Bomb Intrusive Inbound
+HOLD TO
+HANG UP
+
+let peer = null, conn = null, audioCtx = null;
+let ringInterval = null, holdTimer = null, holdProgress = 0;
+function initAudio() {
+if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playBeep(freq, duration, type = 'sine', volume = 0.15) {
+initAudio();
+const osc = audioCtx.createOscillator();
+const gain = audioCtx.createGain();
+osc.type = type; osc.frequency.value = freq;
+gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+osc.connect(gain); gain.connect(audioCtx.destination);
+osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+osc.stop(audioCtx.currentTime + duration);
+}
+function switchTab(tabId) {
+playBeep(600, 0.05);
+document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+document.getElementById(tab-${tabId}).classList.add('active');
+document.getElementById(panel-${tabId}).classList.add('active');
+}
+// --- OFFENSIVE COMMAND CENTER CONTROL (ATTACKER) ---
+function initAttacker() {
+initAudio();
+document.getElementById('setup-status').innerText = "Generating encryption signature node proxy...";
+peer = new Peer();
+peer.on('open', (id) => {
+const shortenedKey = id.slice(0,4).toUpperCase();
+peer._id = shortenedKey;
+document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-orange); font-weight:900; letter-spacing:2px;">ATTACKER ACCESS KEY</h2> <div style="font-size:3.8rem; font-weight:900; background:#000; padding:20px; border:2px dashed var(--os-green); margin:25px 0; letter-spacing:4px; box-shadow: 0 0 20px rgba(0,255,102,0.2);">${shortenedKey}</div> <p style="font-size:0.95rem; opacity:0.8; max-width:400px; line-height:1.5;">Provide this token signature string to the Defender node attachment panel to link communication pipes.</p>;
+});
+peer.on('connection', (connection) => {
+conn = connection;
+setupAttackerUI();
+});
+}
+function setupAttackerUI() {
+document.getElementById('setup-screen').style.display = 'none';
+document.getElementById('attacker-screen').style.display = 'grid';
+document.getElementById('peerStatus').innerText = "🟢 NETWORK HANDSHAKE LINKED";
+playBeep(880, 0.25, 'square');
+const container = document.getElementById('matrixContainer');
+container.innerHTML = <div class="node-row" id="targetNode"> <div class="node-check"></div> <div><strong>NODE_01</strong></div> <div style="letter-spacing:1px;">OP_DEFENDER_TARGET</div> <div style="opacity:0.6; font-size:0.85rem;">00:1A:2B:3C:99:FF</div> <div style="text-align:right; font-weight:bold;">-28dBm</div> </div>;
+const row = document.getElementById('targetNode');
+const triggerBtn = document.getElementById('triggerBtn');
+row.addEventListener('click', () => {
+playBeep(750, 0.06, 'square');
+row.classList.toggle('selected');
+if(row.classList.contains('selected')) {
+triggerBtn.disabled = false; triggerBtn.innerText = "LOGIC BOMB"; triggerBtn.classList.add('ready');
+logFeed("DEVICE CHANNEL VERIFIED. MALWARE HANDSHAKE PIPELINE ARMED.");
+} else {
+triggerBtn.disabled = true; triggerBtn.innerText = "SELECT NODE"; triggerBtn.classList.remove('ready');
+}
+});
+triggerBtn.addEventListener('click', () => {
+logFeed("DISTRIBUTING INTRUSIVE VIRUS INJECTION TO TARGET...");
+conn.send('FIRE_VIRUS');
+triggerBtn.classList.add('active-click');
+let count = 0;
+let t = setInterval(() => {
+playBeep(680, 0.12, 'sawtooth');
+count++; if(count >= 3) { clearInterval(t); triggerBtn.classList.remove('active-click'); }
+}, 200);
+});
+conn.on('data', (data) => {
+if(data === 'VIRUS_CLEARED') {
+logFeed("⚠️ WARNING: TARGET MANUALLY DISRUPTED VIRUS CHANNELS (HUNG UP).");
+playBeep(250, 0.4, 'sawtooth', 0.3);
+}
+});
+}
+function logFeed(msg) {
+const f = document.getElementById('terminalFeed');
+f.innerHTML += <div>> ${msg}</div>;
+if (f.childNodes.length > 4) f.removeChild(f.firstChild);
+}
+// --- DEFENDER TARGET RESPONSE SYSTEM ---
+function initDefender() {
+const key = document.getElementById('joinKey').value.trim().toUpperCase();
+if(!key) return alert("Please map an active 4-character host room key token registry string.");
+initAudio();
+document.getElementById('setup-status').innerText = "Configuring backend bypass communication proxy layer...";
+peer = new Peer();
+peer.on('open', () => {
+const connection = peer.connect(key);
+conn = connection;
+connection.on('open', () => {
+document.getElementById('setup-screen').innerHTML = <h2 class="status-pulse" style="color:var(--os-green); font-weight:900;">TUNNEL INJECTED</h2> <p style="margin-top:15px; opacity:0.7; max-width:360px; line-height:1.4;">System tracking loops attached silently. Lock your device, leave the tab focus running, and stand by for remote signal calls.</p>;
+playBeep(520, 0.15, 'sine');
+});
+connection.on('data', (data) => {
+if(data === 'FIRE_VIRUS') triggerDefTakeover();
+});
+});
+}
+function triggerDefTakeover() {
+document.getElementById('setup-screen').style.display = 'none';
+document.getElementById('defender-screen').style.display = 'flex';
+if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+// Highly accurate electronic buzzing structure loop simulation
+function runAudioLoop() {
+playBeep(1350, 0.18, 'sawtooth', 0.25);
+setTimeout(() => playBeep(850, 0.12, 'square', 0.2), 80);
+}
+runAudioLoop();
+ringInterval = setInterval(runAudioLoop, 1100);
+}
+// --- HOLD TO DISRUPT HACK INTERACTION LOGIC (MINI-GAME) ---
+const hangupBtn = document.getElementById('hangupBtn');
+const progressCircle = document.querySelector('.progress-circle');
+function startHold(e) {
+e.preventDefault();
+initAudio();
+holdProgress = 0;
+playBeep(440, 0.05, 'sine');
+holdTimer = setInterval(() => {
+holdProgress += 1.66; // Scales cleanly to reach 100% capacity over ~3.0 seconds
+if (holdProgress >= 100) {
+holdProgress = 100;
+clearInterval(holdTimer);
+executeSystemWipe();
+}
+// Update SVG stroke-dashoffset tracking indicator (Circumference 283)
+const offset = 283 - (283 * holdProgress) / 100;
+progressCircle.style.strokeDashoffset = offset;
+// Low rhythmic mechanical clicking tones indicating manual cleaning cycles are active
+if(Math.floor(holdProgress) % 8 === 0) playBeep(500, 0.02, 'triangle', 0.1);
+}, 50);
+}
+function endHold() {
+clearInterval(holdTimer);
+holdProgress = 0;
+progressCircle.style.strokeDashoffset = 283;
+}
+function executeSystemWipe() {
+clearInterval(ringInterval);
+playBeep(880, 0.5, 'sine', 0.15); // Clear success ring tone
+if(conn) conn.send('VIRUS_CLEARED');
+document.getElementById('defender-screen').style.display = 'none';
+document.getElementById('setup-screen').style.display = 'flex';
+document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-green); font-weight:900;">VIRUS PURGED</h2> <p style="margin-top:10px; opacity:0.7;">Handshake channel dropped. System firmware secure.</p>;
+setTimeout(() => { location.reload(); }, 3000); // Reload back into main choice room interface
+}
+// Universal Event Handlers accommodating standard mobile finger profiles and touch frameworks
+hangupBtn.addEventListener('mousedown', startHold);
+hangupBtn.addEventListener('mouseup', endHold);
+hangupBtn.addEventListener('mouseleave', endHold);
+hangupBtn.addEventListener('touchstart', startHold);
+hangupBtn.addEventListener('touchend', endHold);
