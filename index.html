@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DOKK_OS_v5.0 // NETWORK_LINK</title>
+    <title>DOKK_OS // ENCRYPTED_TACTICAL_FRAMEWORK</title>
     <style>
         :root {
-            --os-green: #00ff66;
-            --os-orange: #ff6a00;
-            --os-bg: #030705;
-            --panel-bg: rgba(0, 30, 15, 0.6);
-            --bg-blue: #0A1128;
-            --accent-pink: #FF0055;
-            --white: #FFFFFF;
+            --bg-base: #0b0d0e;
+            --bg-surface: #121517;
+            --bg-panel: #171b1e;
+            --accent-green: #39e673;
+            --accent-green-dim: rgba(57, 230, 115, 0.15);
+            --accent-green-glow: rgba(57, 230, 115, 0.4);
+            --accent-orange: #ff7700;
+            --accent-orange-dim: rgba(255, 119, 0, 0.15);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #22282c;
+            --defense-red: #ff3344;
+            --defense-blue: #0a1424;
         }
 
         * {
@@ -20,686 +26,1201 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-
-        body {
-            background-color: var(--os-bg);
-            color: var(--os-green);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* --- SCREEN SCANLINES EFFECT --- */
-        body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
-            z-index: 99;
-            background-size: 100% 5px;
-            pointer-events: none;
-            opacity: 0.35;
-        }
-
-        /* --- SETUP MODE PANEL --- */
-        #setup-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            gap: 20px;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .setup-btn {
-            width: 260px;
-            padding: 20px;
-            border: 2px solid var(--os-green);
-            background: transparent;
-            color: var(--os-green);
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            letter-spacing: 2px;
-        }
-
-        .setup-btn:hover { background: rgba(0, 255, 102, 0.1); }
-        
-        .key-input {
-            background: #000;
-            border: 2px solid var(--os-green);
-            color: var(--os-green);
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            width: 260px;
-            margin-bottom: 10px;
-        }
-
-        /* --- DOKK ATTACKER PANEL VIEW --- */
-        #attacker-screen {
-            display: none;
-            grid-template-columns: 200px 1fr;
-            gap: 20px;
-            padding: 20px;
-            height: 100%;
-        }
-
-        nav { display: flex; flex-direction: column; gap: 15px; }
-        .nav-tab {
-            border: 2px solid var(--os-green);
-            background: transparent;
-            color: var(--os-green);
-            padding: 15px;
-            font-weight: bold;
-            text-align: left;
-        }
-        .nav-tab.active { background: var(--os-green); color: var(--os-bg); box-shadow: 0 0 10px var(--os-green); }
-
-        main { display: grid; grid-template-rows: auto 1fr auto; gap: 15px; height: 100%; overflow: hidden;}
-        .top-banner { border: 2px solid var(--os-green); padding: 10px; display: flex; justify-content: space-between; font-size: 0.85rem;}
-        
-        .node-matrix { border: 2px solid var(--os-green); background: rgba(0, 10, 5, 0.9); padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .node-row {
-            display: grid; grid-template-columns: 40px 100px 1fr 60px; align-items: center;
-            padding: 12px; border: 1px solid rgba(0, 255, 102, 0.2); cursor: pointer;
-        }
-        .node-row.selected { border-color: var(--os-orange); color: var(--os-orange); background: rgba(255, 106, 0, 0.1); }
-        .node-check { width: 16px; height: 16px; border: 2px solid var(--os-green); display: flex; align-items: center; justify-content: center; }
-        .selected .node-check { border-color: var(--os-orange); background: var(--os-orange); }
-
-        .action-panel { display: flex; gap: 15px; }
-        .terminal-feed { flex: 1; border: 2px solid var(--os-green); background: #000; height: 70px; padding: 10px; font-size: 0.75rem; overflow: hidden; }
-        .action-btn { width: 220px; height: 70px; border: 2px solid var(--os-green); background: transparent; color: var(--os-green); font-size: 1.2rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
-        .action-btn.ready { border-color: var(--os-orange); color: var(--os-orange); animation: pulse 1.5s infinite; }
-        .action-btn:active { background: var(--os-orange); color: var(--os-bg); }
-
-        /* --- DEFENDER VIRUS TAKE OVER VIEW --- */
-        #defender-screen {
-            display: none;
-            background-color: var(--bg-blue);
-            height: 100vh;
-            width: 100vw;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            animation: screen-glitch 0.2s infinite steps(2);
-        }
-
-        .gremlin-logo { width: 150px; height: 150px; position: relative; margin-bottom: 30px; animation: logo-twitch 0.4s infinite ease-in-out alternate; }
-        .gremlin-logo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 12px solid var(--white); border-radius: 50%; }
-        .gremlin-face { position: absolute; top: 35px; left: 25px; width: 100px; height: 80px; }
-        .gremlin-face::before, .gremlin-face::after { content: ''; position: absolute; background-color: var(--white); width: 26px; height: 26px; transform: rotate(45deg); top: 12px; }
-        .gremlin-face::before { left: 10px; } .gremlin-face::after { right: 10px; }
-        .gremlin-mouth {
-            position: absolute; bottom: 0; left: 20px; width: 60px; height: 18px;
-            background: linear-gradient(90deg, var(--white) 0%, var(--white) 15%, transparent 15%, transparent 28%, var(--white) 28%, var(--white) 43%, transparent 43%, transparent 57%, var(--white) 57%, var(--white) 72%, transparent 72%, transparent 85%, var(--white) 85%, var(--white) 100%);
-        }
-
-        .warning-text { color: var(--white); font-size: 5.5rem; font-weight: 900; text-shadow: 4px 0px 0px var(--accent-pink), -4px 0px 0px #00FFFF; animation: text-shake 0.1s infinite linear; }
-        .sub-text { color: var(--white); font-size: 1rem; margin-top: 10px; letter-spacing: 10px; opacity: 0.8; }
-
-        @keyframes screen-glitch { 0%, 100% { background-color: #0c1530; } 50% { background-color: #050b1c; filter: brightness(1.1); } }
-        @keyframes logo-twitch { 0%, 100% { transform: scale(1); filter: invert(0); } 33% { transform: scale(1.08) skew(10deg); filter: invert(1); } }
-        @keyframes text-shake { 0% { transform: translate(0px, 0px); } 50% { transform: translate(-2px, 1px); } 100% { transform: translate(2px, -1px); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-    </style>
-    <!-- PeerJS abstracts WebRTC framework so devices cleanly route handshake tunnels over public cellular or Wi-Fi -->
-    <script src="https://cloudflare.com"></script>
-</head>
-<body>
-
-    <!-- STAGE 0: DEVICE SETUP SELECTION -->
-    <div id="setup-screen">
-        <h2 style="letter-spacing:3px; margin-bottom:10px;">SELECT OPERATIONAL NODE</h2>
-        <button class="setup-btn" onclick="initAttacker()">[ ATTACH AS DOKK ]</button>
-        <div style="margin: 15px 0; opacity:0.4;">-- OR --</div>
-        <input type="text" id="joinKey" class="key-input" placeholder="ENTER ATTACKER KEY">
-        <button class="setup-btn" style="border-color: var(--os-orange); color: var(--os-orange);" onclick="initDefender()">[ ATTACH AS DEFENDER ]</button>
-        <p id="setup-status" style="font-size:0.85rem; margin-top:20px; opacity:0.7;"></p>
-    </div>
-
-    <!-- STAGE 1: DOKK'S EXPLOIT DASHBOARD -->
-    <div id="attacker-screen">
-        <nav>
-            <button class="nav-tab">CAMS</button>
-            <button class="nav-tab">DRONES</button>
-            <button class="nav-tab active">HACKING</button>
-        </nav>
-        <main>
-            <div class="top-banner">
-                <div>SYS_LINK: ACTIVE_TUNNEL</div>
-                <div style="color:var(--os-orange)" id="peerStatus">WAITING FOR TARGET LINK...</div>
-            </div>
-            <div class="node-matrix" id="matrixContainer"></div>
-            <div class="action-panel">
-                <div class="terminal-feed" id="terminalFeed">
-                    <div>> INITIALIZING MALWARE FRAMEWORK INJECTOR...</div>
-                </div>
-                <button class="action-btn" id="triggerBtn" disabled>SELECT NODE</button>
-            </div>
-        </main>
-    </div>
-
-    <!-- STAGE 2: SCREEN-ACCURATE VIRUS TAKEOVER LAYER -->
-    <div id="defender-screen">
-        <div class="gremlin-logo"><div class="gremlin-face"><div class="gremlin-mouth"></div></div></div>
-        <h1 class="warning-text">까불지마</h1>
-        <div class="sub-text">VIRUS INTRUSION DETECTION</div>
-    </div>
-
-    <script>
-        let peer = null;
-        let conn = null;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playBeep(freq, duration, type = 'sine') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        // --- ATTACKER DEV ENVIRONMENT MODE ---
-        function initAttacker() {
-Use code with caution.
-document.getElementById('setup-status').innerText = "Generating encryption signature node...";
-peer = new Peer();
-peer.on('open', (id) => {
-// Generates a clean 4-digit token key room ID
-const shortenedKey = id.slice(0,4).toUpperCase();
-// Override PeerJS internally to map connections to the shorter token sequence
-peer._id = shortenedKey;
-document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-orange)">ATTACKER KEY GENERATED</h2> <div style="font-size:3.5rem; font-weight:900; background:#000; padding:20px; border:2px dashed var(--os-green); margin:20px 0;">${shortenedKey}</div> <p style="font-size:0.9rem; opacity:0.8;">Enter this key code exactly on the Defender's device to hook them.</p>;
-});
-peer.on('connection', (connection) => {
-conn = connection;
-setupAttackerUI();
-});
-}
-function setupAttackerUI() {
-document.getElementById('setup-screen').style.display = 'none';
-document.getElementById('attacker-screen').style.display = 'grid';
-document.getElementById('peerStatus').innerText = "🟢 TARGET HOOKED SUCCESSFULLY";
-playBeep(880, 0.2, 'square');
-const container = document.getElementById('matrixContainer');
-container.innerHTML = <div class="node-row" id="targetNode"> <div class="node-check"></div> <div><strong>NODE_01</strong></div> <div>OP_DEFENDER_REPLICA</div> <div style="text-align:right; font-weight:bold;">-34dBm</div> </div>;
-const row = document.getElementById('targetNode');
-const triggerBtn = document.getElementById('triggerBtn');
-row.addEventListener('click', () => {
-playBeep(700, 0.05, 'sine');
-row.classList.toggle('selected');
-if(row.classList.contains('selected')) {
-triggerBtn.disabled = false; triggerBtn.innerText = "LOGIC BOMB"; triggerBtn.classList.add('ready');
-logFeed("TARGET ROUTE RESOLVED. LOGIC BOMB HANDSHAKE ARMED.");
-} else {
-triggerBtn.disabled = true; triggerBtn.innerText = "SELECT NODE"; triggerBtn.classList.remove('ready');
-}
-});
-triggerBtn.addEventListener('click', () => {
-logFeed("EXECUTING INTRUSIVE LOGIC BOMB SEQUENCE...");
-conn.send('FIRE_VIRUS');
-let count = 0;
-let t = setInterval(() => {
-playBeep(640, 0.1, 'sawtooth');
-count++; if(count >= 3) clearInterval(t);
-}, 200);
-});
-}
-function logFeed(msg) {
-const f = document.getElementById('terminalFeed');
-f.innerHTML += <div>> ${msg}</div>;
-if (f.childNodes.length > 4) f.removeChild(f.firstChild);
-}
-// --- DEFENDER TARGET ENVIRONMENT MODE ---
-function initDefender() {
-const key = document.getElementById('joinKey').value.trim().toUpperCase();
-if(!key) return alert("Please present a valid Attacker room signature key token.");
-document.getElementById('setup-status').innerText = "Routing proxy node bypass tunnel...";
-peer = new Peer();
-peer.on('open', () => {
-const connection = peer.connect(key);
-connection.on('open', () => {
-document.getElementById('setup-screen').innerHTML = <h2 class="status-pulse" style="color:var(--os-green)">NODE HOOKED</h2> <p style="margin-top:15px; opacity:0.7;">System backend running silently. Awaiting incoming network data packages...</p>;
-// Authenticates web audio API profile interaction rules
-playBeep(440, 0.1, 'sine');
-});
-connection.on('data', (data) => {
-if(data === 'FIRE_VIRUS') {
-triggerDefTakeover();
-}
-});
-});
-}
-function triggerDefTakeover() {
-document.getElementById('setup-screen').style.display = 'none';
-document.getElementById('defender-screen').style.display = 'flex';
-// Execute physical browser vibrator module hardware if supported on device
-if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
-// Audio Payload Synthesis: Emulates her heavy intrusive electronic screeching loop ringtone feedback
-let ringCount = 0;
-function runAudioLoop() {
-if(ringCount > 5) return; // Cap loop cycles
-// Screech Tone
-playBeep(1200, 0.25, 'sawtooth');
-setTimeout(() => playBeep(900, 0.15, 'square'), 100);
-ringCount++;
-setTimeout(runAudioLoop, 1200);
-}
-runAudioLoop();
-}
-
-
-
-### 📱 Steps to Run & Deploy
-1. **Host the Code for Free:** Go to [GitHub Pages](https://github.com) or [Vercel](https://vercel.com), upload this `index.html` file, and get your public link. 
-2. **Open on Phone A:** Hit **[ ATTACH AS DOKK ]**, then copy down the 4-digit code generated.
-3. **Open on Phone B:** Type the code from Phone A into the box, and tap **[ ATTACH AS DEFENDER ]**. 
-4. **Initiate the Hack:** On Phone A, click the defender row in your grid matrix, then smash **LOGIC BOMB**. Phone B will immediately transform into Dokkaebi's flashing screen.
-
-<FollowUp>
-Would you like me to add code for a **"Turn Off Call" mini-game button** on the Defender side so they have to hold down a clear button for 3 seconds to wipe the virus away, just like inside Rainbow Six Siege?
-</FollowUp>
-AI responses may include mistakes. Learn more
-
-ok just keep coding now. add as much as you can while keeping it as accurate as possible
-
-Here is the complete, production-grade overhaul of Dokk OS. This update transitions the code from a proof-of-concept into a comprehensive simulation of her tactical loadout.
-
-🌟 New Features Built-In
-
-1. Interactive Reset Cycle (Defender Mini-Game): When a Logic Bomb strikes, the defender's screen locks completely. To break the hack, they must press and hold a "HANG UP" button for a full 3 seconds. A live radial system-wipe progress bar tracks their interaction, mimicking the exact time-cost penalty from Rainbow Six Siege.
-2. Dynamic Live Sound FX Loop: The Web Audio API synthesizer engine has been heavily expanded to dynamically generate her screen-accurate hacking frequencies, buzzes, and rhythmic buzzing loop structures locally without any audio delays or dependencies on external files.
-3. Fully Functional Sidebar Framework: Tabs are no longer aesthetic placeholders. Toggling CAMS opens an automated tactical network surveillance grid where you can tap individual nodes to pull up operational video streams. Toggling DRONE initializes an active telemetry scanning loop.
-4. Enhanced Hardware Haptics & Visual Noise: Employs intense CSS matrix spatial warping, random multi-colored flashing anomaly overflows, and deeper device system vibration arrays.
-
-📄 Complete Screen-Accurate index.html
-
-html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DOKK_OS_v6.0 // OPERATIONAL_COMMAND</title>
-    <style>
-        :root {
-            --os-green: #00ff66;
-            --os-orange: #ff6a00;
-            --os-bg: #030705;
-            --panel-bg: rgba(0, 30, 15, 0.6);
-            --bg-blue: #0A1128;
-            --accent-pink: #FF0055;
-            --white: #FFFFFF;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            font-family: 'Consolas', 'Courier New', monospace;
+            -webkit-user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--os-bg);
-            color: var(--os-green);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* --- SCREEN SCANLINES OVERLAY --- */
-        body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
-            z-index: 999;
-            background-size: 100% 5px;
-            pointer-events: none;
-            opacity: 0.35;
-        }
-
-        /* --- STAGE 0: DEVICE SETUP SELECTION --- */
+        /* --- MODE SELECTION SCREEN (SETUP) --- */
         #setup-screen {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            width: 100%;
             height: 100%;
-            gap: 20px;
-            padding: 40px;
+            max-width: 500px;
+            padding: 30px;
+            gap: 25px;
             text-align: center;
-            z-index: 10;
-            position: relative;
         }
 
-        .setup-btn {
-            width: 280px;
-            padding: 20px;
-            border: 2px solid var(--os-green);
-            background: transparent;
-            color: var(--os-green);
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            letter-spacing: 2px;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
-        }
-
-        .setup-btn:hover { background: rgba(0, 255, 102, 0.1); box-shadow: 0 0 15px var(--os-green); }
-        
-        .key-input {
-            background: #000;
-            border: 2px solid var(--os-green);
-            color: var(--os-green);
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            width: 280px;
+        .setup-header {
             margin-bottom: 10px;
         }
 
-        /* --- DOKK ATTACKER PANEL VIEW --- */
+        .setup-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .setup-header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setup-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            padding: 25px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .setup-btn {
+            background: transparent;
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+
+        .setup-btn:hover {
+            background: var(--accent-green-dim);
+            box-shadow: 0 0 15px var(--accent-green-glow);
+        }
+
+        .setup-btn.defender-mode {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        .setup-btn.defender-mode:hover {
+            background: var(--accent-orange-dim);
+            box-shadow: 0 0 15px rgba(255, 119, 0, 0.3);
+        }
+
+        .peer-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .peer-input {
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 14px;
+            font-size: 0.95rem;
+            text-align: center;
+            font-family: monospace;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .peer-input:focus {
+            border-color: var(--accent-orange);
+        }
+
+        #setup-status {
+            font-size: 0.85rem;
+            font-family: monospace;
+            color: var(--accent-green);
+            min-height: 20px;
+        }
+
+        /* --- MAIN TACTICAL INTERFACE (ATTACKER) --- */
         #attacker-screen {
             display: none;
-            grid-template-columns: 220px 1fr;
-            gap: 20px;
-            padding: 20px;
+            width: 100%;
+            height: 100%;
+            grid-template-rows: 50px 1fr;
+            background-color: var(--bg-base);
+        }
+
+        /* Top Frame Status Bar */
+        .system-top-bar {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        .system-identity {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .system-comms {
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comms-pulse {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        /* Interface Layout Split */
+        .workspace-container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Primary Sidebar Controls */
+        .navigation-sidebar {
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+            gap: 10px;
+        }
+
+        .nav-item {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 16px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-align: left;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-radius: 2px;
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-item.active {
+            color: var(--accent-green);
+            background-color: var(--accent-green-dim);
+            border-left: 3px solid var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Center Display Modules */
+        .module-display {
+            padding: 25px;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .display-panel {
+            display: none;
+            width: 100%;
             height: 100%;
         }
 
-        nav { display: flex; flex-direction: column; gap: 15px; }
-        .nav-tab {
-            border: 2px solid var(--os-green);
-            background: transparent;
-            color: var(--os-green);
-            padding: 20px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            text-align: left;
-            cursor: pointer;
+        .display-panel.active {
+            display: block;
+        }
+
+        /* --- PANEL 1: HOME OVERVIEW --- */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .home-header-block {
+            grid-column: span 2;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .home-header-block h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .nav-tab.active { background: var(--os-green); color: var(--os-bg); box-shadow: 0 0 15px var(--os-green); }
 
-        main { display: grid; grid-template-rows: auto 1fr auto; gap: 15px; height: 100%; overflow: hidden;}
-        .top-banner { border: 2px solid var(--os-green); padding: 12px 20px; display: flex; justify-content: space-between; font-size: 0.9rem; background: var(--panel-bg); }
-        
-        /* Inner Container Panels */
-        .content-panel { display: none; height: 100%; overflow: hidden; }
-        .content-panel.active { display: block; }
-
-        .node-matrix { border: 2px solid var(--os-green); background: rgba(0, 10, 5, 0.9); padding: 20px; display: flex; flex-direction: column; gap: 12px; height: 100%; overflow-y: auto; }
-        .node-row {
-            display: grid; grid-template-columns: 50px 140px 1fr 120px 80px; align-items: center;
-            padding: 15px; border: 1px solid rgba(0, 255, 102, 0.2); background: rgba(0, 20, 10, 0.3); cursor: pointer;
-        }
-        .node-row.selected { border-color: var(--os-orange); color: var(--os-orange); background: rgba(255, 106, 0, 0.15); }
-        .node-check { width: 20px; height: 20px; border: 2px solid var(--os-green); display: flex; align-items: center; justify-content: center; }
-        .selected .node-check { border-color: var(--os-orange); background: var(--os-orange); }
-
-        /* Surveillance Subsystem */
-        .cams-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; height: 100%; }
-        .cam-feed { border: 2px solid var(--os-green); background: #000; position: relative; display: flex; justify-content: center; align-items: center; font-weight: bold; overflow: hidden; cursor: pointer; }
-        .cam-feed.compromised { border-color: var(--os-orange); color: var(--os-orange); }
-        .cam-static { position: absolute; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #111, #111 2px, #222 2px, #222 4px); opacity: 0.15; animation: static-roll 1s infinite linear; }
-        .cam-label { position: absolute; top: 10px; left: 10px; font-size: 0.8rem; background: rgba(0,0,0,0.7); padding: 2px 6px; z-index: 5; }
-
-        /* Lower Action Framework */
-        .action-panel { display: flex; gap: 20px; }
-        .terminal-feed { flex: 1; border: 2px solid var(--os-green); background: #000; height: 80px; padding: 12px; font-size: 0.8rem; overflow: hidden; line-height: 1.4; }
-        .action-btn { width: 260px; height: 80px; border: 2px solid var(--os-green); background: transparent; color: var(--os-green); font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
-        .action-btn.ready { border-color: var(--os-orange); color: var(--os-orange); box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); animation: pulse 1.5s infinite; }
-        .action-btn:active, .action-btn.active-click { background: var(--os-orange); color: var(--os-bg); box-shadow: 0 0 25px var(--os-orange); }
-
-        /* --- DEFENDER VIRUS TAKE OVER VIEW --- */
-        #defender-screen {
-            display: none;
-            background-color: var(--bg-blue);
-            height: 100vh;
-            width: 100vw;
+        .telemetry-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 20px;
+            display: flex;
             flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .telemetry-label {
+            color: var(--text-secondary);
+        }
+
+        .telemetry-val {
+            color: var(--text-primary);
+        }
+
+        .telemetry-val.secure {
+            color: var(--accent-green);
+        }
+
+        .id-display-box {
+            background: var(--bg-base);
+            border: 1px dashed var(--border-color);
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            color: var(--accent-green);
+            text-align: center;
+        }
+
+        /* --- PANEL 2: INTERACTIVE CAMS --- */
+        .cams-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .cams-viewfinder {
+            background-color: #000;
+            border: 1px solid var(--border-color);
+            position: relative;
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .viewfinder-canvas {
             position: absolute;
-            top: 0; left: 0;
-            animation: screen-glitch 0.2s infinite steps(2);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
-        .gremlin-logo { width: 160px; height: 160px; position: relative; margin-bottom: 20px; animation: logo-twitch 0.4s infinite ease-in-out alternate; }
-        .gremlin-logo::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 12px solid var(--white); border-radius: 50%; }
-        .gremlin-face { position: absolute; top: 35px; left: 25px; width: 110px; height: 80px; }
-        .gremlin-face::before, .gremlin-face::after { content: ''; position: absolute; background-color: var(--white); width: 28px; height: 28px; transform: rotate(45deg); top: 12px; }
-        .gremlin-face::before { left: 12px; } .gremlin-face::after { right: 12px; }
-        .gremlin-mouth {
-            position: absolute; bottom: 0; left: 20px; width: 65px; height: 18px;
-            background: linear-gradient(90deg, var(--white) 0%, var(--white) 15%, transparent 15%, transparent 28%, var(--white) 28%, var(--white) 43%, transparent 43%, transparent 57%, var(--white) 57%, var(--white) 72%, transparent 72%, transparent 85%, var(--white) 85%, var(--white) 100%);
-        }
-
-        .warning-text { color: var(--white); font-size: 6rem; font-weight: 900; text-shadow: 5px 0px 0px var(--accent-pink), -5px 0px 0px #00FFFF; animation: text-shake 0.1s infinite linear; }
-        .sub-text { color: var(--white); font-size: 1.1rem; margin-top: 10px; letter-spacing: 12px; opacity: 0.85; padding-left: 12px; text-transform: uppercase; font-weight: bold;}
-
-        /* Defender Device Wipe/Hold Mini-game Control */
-        .hangup-container { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; }
-        .hangup-btn {
-            width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--white); background: var(--accent-pink);
-            color: var(--white); font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 0 20px var(--accent-pink); transition: transform 0.1s; z-index: 10;
-        }
-        .hangup-btn:active { transform: scale(0.92); }
-        
-        .progress-svg { position: absolute; top: -10px; left: -10px; width: 110px; height: 110px; transform: rotate(-90deg); pointer-events: none; }
-        .progress-circle { stroke: var(--white); stroke-width: 6; fill: transparent; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.05s linear; }
-
-        /* --- GLOBAL ANIMATIONS --- */
-        @keyframes screen-glitch { 0%, 100% { background-color: #0c1530; filter: contrast(1); } 50% { background-color: #050b1c; filter: contrast(1.25) brightness(1.15); } }
-        @keyframes logo-twitch { 0%, 100% { transform: scale(1) skew(0deg); filter: invert(0); } 33% { transform: scale(1.1) skew(12deg); filter: invert(1); } 66% { transform: scale(0.95) translateY(-3px); } }
-        @keyframes text-shake { 0% { transform: translate(0px, 0px); } 25% { transform: translate(-3px, 1px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-1px, 2px); } 100% { transform: translate(0px, 0px); } }
-        @keyframes static-roll { 0% { background-position: 0 0; } 100% { background-position: 0 100px; } }
+        .viewfinder-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
 Use code with caution.
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-.status-pulse { animation: text-blink 1.5s infinite; }
-@keyframes text-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+justify-content: space-between;
+z-index: 2;
+pointer-events: none;
+font-family: monospace;
+}
+.overlay-top {
+display: flex;
+justify-content: space-between;
+color: var(--accent-green);
+font-size: 0.9rem;
+text-shadow: 0 0 4px #000;
+}
+.overlay-bottom {
+display: flex;
+justify-content: space-between;
+color: #ffffff;
+font-size: 0.85rem;
+opacity: 0.8;
+text-shadow: 0 0 4px #000;
+}
+.cams-sidebar-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+overflow-y: auto;
+}
+.cam-node-item {
+background-color: var(--bg-surface);
+border: 1px solid var(--border-color);
+padding: 14px;
+border-radius: 4px;
+cursor: pointer;
+display: flex;
+flex-direction: column;
+gap: 5px;
+transition: all 0.15s ease;
+}
+.cam-node-item:hover {
+border-color: rgba(255, 255, 255, 0.1);
+}
+.cam-node-item.active {
+border-color: var(--accent-green);
+background-color: var(--accent-green-dim);
+}
+.cam-node-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 0.85rem;
+font-weight: 700;
+}
+.cam-node-status {
+font-size: 0.75rem;
+font-family: monospace;
+color: var(--accent-green);
+}
+.cam-node-desc {
+font-size: 0.8rem;
+color: var(--text-secondary);
+}
+/* --- PANEL 3: DRONE PROTOCOL --- */
+.drone-container {
+display: grid;
+grid-template-columns: 1fr 300px;
+gap: 20px;
+height: 100%;
+}
+.radar-box {
+background-color: var(--bg-surface);
+border: 1px solid var(--border-color);
+border-radius: 4px;
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative;
+overflow: hidden;
+}
+.radar-canvas {
+width: 90%;
+height: 90%;
+max-width: 450px;
+max-height: 450px;
+}
+/* --- PANEL 4: OFFENSIVE HACKING SYSTEM --- */
+.hacking-container {
+display: grid;
+grid-template-rows: 1fr 120px;
+gap: 20px;
+height: 100%;
+}
+.hacking-main-split {
+display: grid;
+grid-template-columns: 1fr 320px;
+gap: 20px;
+height: 100%;
+overflow: hidden;
+}
+.target-selection-panel {
+background-color: var(--bg-surface);
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 20px;
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+.target-node {
+border: 1px solid var(--border-color);
+background-color: var(--bg-base);
+padding: 18px 20px;
+border-radius: 4px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+.target-node:hover {
+border-color: rgba(255, 255, 255, 0.08);
+}
+.target-node.selected {
+border-color: var(--accent-orange);
+background-color: var(--accent-orange-dim);
+}
+.target-info {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+.target-title {
+font-size: 0.95rem;
+font-weight: 700;
+letter-spacing: 0.5px;
+}
+.target-meta {
+font-size: 0.8rem;
+font-family: monospace;
+color: var(--text-secondary);
+}
+.target-radio-marker {
+width: 18px;
+height: 18px;
+border: 1px solid var(--border-color);
+border-radius: 50%;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.target-node.selected .target-radio-marker {
+border-color: var(--accent-orange);
+}
+.target-node.selected .target-radio-marker::after {
+content: '';
+width: 10px;
+height: 10px;
+background-color: var(--accent-orange);
+border-radius: 50%;
+}
+.action-control-box {
+background-color: var(--bg-surface);
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 25px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+gap: 15px;
+text-align: center;
+}
+.fire-bomb-btn {
+width: 100%;
+background-color: transparent;
+border: 1px solid var(--border-color);
+color: var(--text-secondary);
+padding: 20px;
+font-size: 1.1rem;
+font-weight: 800;
+letter-spacing: 3px;
+text-transform: uppercase;
+cursor: not-allowed;
+border-radius: 4px;
+transition: all 0.2s ease;
+}
+.fire-bomb-btn.armed {
+border-color: var(--accent-orange);
+color: var(--accent-orange);
+cursor: pointer;
+}
+.fire-bomb-btn.armed:hover {
+background-color: var(--accent-orange-dim);
+box-shadow: 0 0 20px rgba(255, 119, 0, 0.25);
+}
+.fire-bomb-btn:active {
+transform: scale(0.98);
+}
+.terminal-log-panel {
+background-color: #000;
+border: 1px solid var(--border-color);
+border-radius: 4px;
+padding: 15px;
+font-family: monospace;
+font-size: 0.85rem;
+color: var(--accent-green);
+overflow-y: hidden;
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+/* --- DEFENDER TAKEOVER LAYER --- */
+#defender-screen {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+background-color: var(--defense-blue);
+z-index: 10000;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+overflow: hidden;
+}
+.glitch-canvas {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 1;
+pointer-events: none;
+}
+.defense-core-ui {
+position: relative;
+z-index: 2;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 30px;
+text-align: center;
+}
+.defense-icon-frame {
+position: relative;
+width: 140px;
+height: 140px;
+margin-bottom: 10px;
+}
+/* Pure CSS Replica Gremlin Logo Structure */
+.logo-circle {
+position: absolute;
+top: 0; left: 0; width: 100%; height: 100%;
+border: 10px solid #ffffff;
+border-radius: 50%;
+}
+.logo-eyes {
+position: absolute;
+top: 35px;
+left: 20px;
+width: 100px;
+height: 30px;
+display: flex;
+justify-content: space-around;
+}
+.logo-eye {
+width: 26px;
+height: 26px;
+background-color: #ffffff;
+transform: rotate(45deg);
+}
+.logo-mouth {
+position: absolute;
+bottom: 30px;
+left: 35px;
+width: 70px;
+height: 16px;
+background: linear-gradient(90deg,
+#ffffff 0%, #ffffff 15%,
+transparent 15%, transparent 28%,
+#ffffff 28%, #ffffff 43%,
+transparent 43%, transparent 57%,
+#ffffff 57%, #ffffff 72%,
+transparent 72%, transparent 85%,
+#ffffff 85%, #ffffff 100%
+);
+}
+.defense-warning-msg {
+color: #ffffff;
+font-size: 5rem;
+font-weight: 900;
+letter-spacing: -2px;
+line-height: 1;
+text-shadow: 4px 0px 0px var(--defense-red), -4px 0px 0px #00ffff;
+}
+.defense-sub-msg {
+color: #ffffff;
+font-size: 0.95rem;
+font-family: monospace;
+letter-spacing: 8px;
+text-transform: uppercase;
+opacity: 0.8;
+margin-top: 5px;
+}
+.interaction-wipe-zone {
+margin-top: 20px;
+position: relative;
+width: 120px;
+height: 120px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.hangup-trigger-btn {
+position: absolute;
+width: 90px;
+height: 90px;
+border-radius: 50%;
+border: none;
+background-color: var(--defense-red);
+color: #ffffff;
+font-size: 0.8rem;
+font-weight: 800;
+letter-spacing: 1px;
+text-transform: uppercase;
+cursor: pointer;
+box-shadow: 0 0 20px rgba(255, 51, 68, 0.4);
+z-index: 5;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.radial-progress-svg {
+position: absolute;
+width: 120px;
+height: 120px;
+transform: rotate(-90deg);
+z-index: 4;
+pointer-events: none;
+}
+.radial-track-circle {
+stroke: rgba(255, 255, 255, 0.1);
+stroke-width: 6;
+fill: transparent;
+}
+.radial-fill-circle {
+stroke: #ffffff;
+stroke-width: 6;
+fill: transparent;
+stroke-dasharray: 345.57;
+stroke-dashoffset: 345.57;
+transition: stroke-dashoffset 0.05s linear;
+}
+/* --- GLOBAL UTILITIES & KEYFRAMES --- */
+@keyframes pulse-dot {
+0%, 100% { opacity: 1; transform: scale(1); }
+50% { opacity: 0.4; transform: scale(0.9); }
+}
+DOKK_OS
+Tactical Data Link Linkage Interface
+Attach as Attacker
+[ SECURITY INTERSECT ]
+
+
+Attach as Defender
+
+System Standing By...
+HOST_OPERATOR // DOKK_REPLICA
+
+
+NETWORK SECURE // LOCAL NODE ONLY
+
+Home
+Cams
+Drone
+Hacking
+Tactical Framework Overview
+
+
+Device Manifest
+
+OS version:
+v6.4.0-Tactical
+
+
+Kernel state:
+ENCRYPTED // STABLE
+
+
+Hardware token:
+JEGEO_PAYLOAD_GEN4
 
 
 
-SELECT DEVICE PARITY MODE
-[ ATTACH AS DOKK ]
-OR
+Peer Registration Anchor
 
-[ ATTACH AS DEFENDER ]
+Share this complete link address identifier directly with target nodes to permit direct connection injection commands:
 
-CAMS
-DRONES
-HACKING
+Generating System Core Identity Key String...
 
 
+FEED // CCTV_NORTH_CORRIDOR
+● LIVE STREAM
 
-SYS_LINK: DATA_TUNNEL_PROXY_v6.0
-AWAITING HANDSHAKE OVER-THE-AIR LINK...
-PING: 34ms
-🎥 CCTV_MAIN_CORRIDOR [HIJACKED]📱 SYSTEM STREAM INTERCEPTED
-🎥 CCTV_VAULT_ENTRY🔒 SECURE ARCHIVE FEED LINK [ENCRYPTED]
-🎥 CCTV_GARAGE_RAMP [HIJACKED]📱 SYSTEM STREAM INTERCEPTED
-🎥 CCTV_BOMB_SITE_A🔒 SECURE ARCHIVE FEED LINK [ENCRYPTED]
 
-🛰️ DRONE_FEED_DRIVERS: STANDING BY
-Active telemetry scanner pipeline loaded. Link to active Shock Drone or Twitch platform configuration blocks to expand mapping grid overlay.
+00:00:00:00
+FPS: 30.0 // RES: 1080P
 
-> INITIALIZING MALWARE DATA INJECTOR SECTOR PACKETS...
 
-SELECT NODE
+
+
+
+Drone Driver Matrix
+
+Signal feed:
+98% // EXCELLENT
+
+
+Battery array:
+87% [NOMINAL]
+
+
+Telemetry engine:
+ACTIVE OVERRIDE
+
+
+Active telemetry scan trace sweeps running on an automated loop algorithm inside the geographic deployment sector.
+
+
+
+Select Handshake Targets
+
+
+
+Exploit Launcher
+Click below to distribute the remote electronic signal payload disruption matrix to paired nodes.
+No Target Linked
+
+
+
+> SYSTEM ENGINE INITIATED... SECURITY INTERSECT CODES VERIFIED.
+
+
+
 
 
 까불지마
-Logic Bomb Intrusive Inbound
-HOLD TO
-HANG UP
+System Intrusion Detected
+Hang Up
 
-let peer = null, conn = null, audioCtx = null;
-let ringInterval = null, holdTimer = null, holdProgress = 0;
+
+// --- GLOBAL VARIABLES & SOUND STATE CONTEXT ---
+let audioCtx = null;
+let peerInstance = null;
+let connectedSocket = null;
+let selectedTargetNodeId = null;
+// Tactical mock database models
+const surveillanceNodes = [
+{ id: "cam-0", title: "CCTV_NORTH_CORRIDOR", loc: "Access Sector Alpha", status: "ONLINE", speed: 0.02 },
+{ id: "cam-1", title: "CCTV_MAIN_VAULT_ENTRY", loc: "Vault Sublevel 1", status: "ONLINE", speed: 0.05 },
+{ id: "cam-2", title: "CCTV_STAIRWELL_B", loc: "Service Shaft West", status: "STANDBY", speed: 0.01 },
+{ id: "cam-3", title: "CCTV_LOADING_DOCK_4", loc: "External Perimeter Check", status: "ONLINE", speed: 0.08 }
+];
+let activeCamIndex = 0;
+// --- WEB AUDIO AUDIO SYNTHESIZER DRIVER ---
 function initAudio() {
-if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+if (!audioCtx) {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
-function playBeep(freq, duration, type = 'sine', volume = 0.15) {
+}
+function triggerSyntheticBeep(frequency, lifespan, waveform = 'sine', outputGain = 0.12) {
+try {
 initAudio();
-const osc = audioCtx.createOscillator();
-const gain = audioCtx.createGain();
-osc.type = type; osc.frequency.value = freq;
-gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-osc.connect(gain); gain.connect(audioCtx.destination);
-osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-osc.stop(audioCtx.currentTime + duration);
+const oscNode = audioCtx.createOscillator();
+const gainEnvelope = audioCtx.createGain();
+oscNode.type = waveform;
+oscNode.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+gainEnvelope.gain.setValueAtTime(outputGain, audioCtx.currentTime);
+gainEnvelope.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + lifespan);
+oscNode.connect(gainEnvelope);
+gainEnvelope.connect(audioCtx.destination);
+oscNode.start();
+oscNode.stop(audioCtx.currentTime + lifespan);
+} catch (err) {
+console.warn("Audio node generation bypassed:", err);
 }
-function switchTab(tabId) {
-playBeep(600, 0.05);
-document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
-document.getElementById(tab-${tabId}).classList.add('active');
-document.getElementById(panel-${tabId}).classList.add('active');
 }
-// --- OFFENSIVE COMMAND CENTER CONTROL (ATTACKER) ---
-function initAttacker() {
+// Heavy, screen-accurate intrusion electronic screech pulse loops
+let intrusionAudioCycle = null;
+function engageIntrusionSoundloop() {
 initAudio();
-document.getElementById('setup-status').innerText = "Generating encryption signature node proxy...";
-peer = new Peer();
-peer.on('open', (id) => {
-const shortenedKey = id.slice(0,4).toUpperCase();
-peer._id = shortenedKey;
-document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-orange); font-weight:900; letter-spacing:2px;">ATTACKER ACCESS KEY</h2> <div style="font-size:3.8rem; font-weight:900; background:#000; padding:20px; border:2px dashed var(--os-green); margin:25px 0; letter-spacing:4px; box-shadow: 0 0 20px rgba(0,255,102,0.2);">${shortenedKey}</div> <p style="font-size:0.95rem; opacity:0.8; max-width:400px; line-height:1.5;">Provide this token signature string to the Defender node attachment panel to link communication pipes.</p>;
-});
-peer.on('connection', (connection) => {
-conn = connection;
-setupAttackerUI();
-});
+if (intrusionAudioCycle) clearInterval(intrusionAudioCycle);
+function blastPulse() {
+triggerSyntheticBeep(1280, 0.14, 'sawtooth', 0.22);
+setTimeout(() => {
+triggerSyntheticBeep(820, 0.09, 'square', 0.18);
+}, 60);
 }
-function setupAttackerUI() {
-document.getElementById('setup-screen').style.display = 'none';
-document.getElementById('attacker-screen').style.display = 'grid';
-document.getElementById('peerStatus').innerText = "🟢 NETWORK HANDSHAKE LINKED";
-playBeep(880, 0.25, 'square');
-const container = document.getElementById('matrixContainer');
-container.innerHTML = <div class="node-row" id="targetNode"> <div class="node-check"></div> <div><strong>NODE_01</strong></div> <div style="letter-spacing:1px;">OP_DEFENDER_TARGET</div> <div style="opacity:0.6; font-size:0.85rem;">00:1A:2B:3C:99:FF</div> <div style="text-align:right; font-weight:bold;">-28dBm</div> </div>;
-const row = document.getElementById('targetNode');
-const triggerBtn = document.getElementById('triggerBtn');
-row.addEventListener('click', () => {
-playBeep(750, 0.06, 'square');
-row.classList.toggle('selected');
-if(row.classList.contains('selected')) {
-triggerBtn.disabled = false; triggerBtn.innerText = "LOGIC BOMB"; triggerBtn.classList.add('ready');
-logFeed("DEVICE CHANNEL VERIFIED. MALWARE HANDSHAKE PIPELINE ARMED.");
+blastPulse();
+intrusionAudioCycle = setInterval(blastPulse, 1100);
+}
+function ceaseIntrusionSoundloop() {
+if (intrusionAudioCycle) {
+clearInterval(intrusionAudioCycle);
+intrusionAudioCycle = null;
+}
+}
+// --- INTERFACE CANVAS DRAW ANIMATION DRIVERS ---
+// Surveillance Frame Engine
+const camsCanvas = document.getElementById('camsCanvas');
+const camsCtx = camsCanvas.getContext('2d');
+let camsFrameId = null;
+function resizeCamsCanvas() {
+camsCanvas.width = camsCanvas.parentElement.clientWidth;
+camsCanvas.height = camsCanvas.parentElement.clientHeight;
+}
+window.addEventListener('resize', resizeCamsCanvas);
+resizeCamsCanvas();
+function renderCamsLoop(timestamp) {
+const w = camsCanvas.width;
+const h = camsCanvas.height;
+camsCtx.fillStyle = '#050708';
+camsCtx.fillRect(0, 0, w, h);
+// Generate rhythmic mathematical scan waves mimicking green surveillance camera rows
+camsCtx.strokeStyle = 'rgba(57, 230, 115, 0.07)';
+camsCtx.lineWidth = 2;
+const activeCam = surveillanceNodes[activeCamIndex];
+const driftOffset = (timestamp * activeCam.speed) % 40;
+for (let y = driftOffset; y < h; y += 30) {
+camsCtx.beginPath();
+camsCtx.moveTo(0, y);
+camsCtx.lineTo(w, y);
+camsCtx.stroke();
+}
+// Draw abstract grid tracking elements to feel like genuine telemetry data
+camsCtx.strokeStyle = 'rgba(57, 230, 115, 0.15)';
+camsCtx.strokeRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
+camsCtx.fillStyle = 'rgba(57, 230, 115, 0.2)';
+camsCtx.font = '11px monospace';
+camsCtx.fillText("TRACKING_SYS_LOCK: OK", w * 0.12, h * 0.16);
+// Intermittent visual static lines
+if (Math.random() > 0.94) {
+camsCtx.fillStyle = 'rgba(57, 230, 115, 0.3)';
+camsCtx.fillRect(0, Math.random() * h, w, Math.random() * 4);
+}
+// Update real-time timestamp display string markers
+const dateObj = new Date();
+document.getElementById('vf-cam-time').innerText =
+String(dateObj.getHours()).padStart(2, '0') + ":" +
+String(dateObj.getMinutes()).padStart(2, '0') + ":" +
+String(dateObj.getSeconds()).padStart(2, '0') + ":" +
+String(Math.floor(timestamp % 100)).padStart(2, '0');
+camsFrameId = requestAnimationFrame(renderCamsLoop);
+}
+// Radar Scan Engine
+const radarCanvas = document.getElementById('droneRadarCanvas');
+const radarCtx = radarCanvas.getContext('2d');
+let radarFrameId = null;
+function resizeRadarCanvas() {
+radarCanvas.width = radarCanvas.parentElement.clientWidth * 0.9;
+radarCanvas.height = radarCanvas.parentElement.clientWidth * 0.9;
+if(radarCanvas.width > 450) {
+radarCanvas.width = 450;
+radarCanvas.height = 450;
+}
+}
+window.addEventListener('resize', resizeRadarCanvas);
+resizeRadarCanvas();
+function renderRadarLoop(timestamp) {
+const size = radarCanvas.width;
+radarCtx.clearRect(0, 0, size, size);
+const center = size / 2;
+const maxRadius = size * 0.45;
+// Concentric sweep paths
+radarCtx.strokeStyle = 'rgba(57, 230, 115, 0.2)';
+radarCtx.lineWidth = 1;
+for (let r = maxRadius; r > 0; r -= maxRadius / 3) {
+radarCtx.beginPath();
+radarCtx.arc(center, center, r, 0, Math.PI * 2);
+radarCtx.stroke();
+}
+// Crosshair guidelines
+radarCtx.beginPath();
+radarCtx.moveTo(center - maxRadius, center); radarCtx.lineTo(center + maxRadius, center);
+radarCtx.moveTo(center, center - maxRadius); radarCtx.lineTo(center, center + maxRadius);
+radarCtx.stroke();
+// Rotational sweep arm
+const sweepAngle = (timestamp * 0.0015) % (Math.PI * 2);
+radarCtx.strokeStyle = 'rgba(57, 230, 115, 0.6)';
+radarCtx.lineWidth = 2;
+radarCtx.beginPath();
+radarCtx.moveTo(center, center);
+radarCtx.lineTo(center + Math.cos(sweepAngle) * maxRadius, center + Math.sin(sweepAngle) * maxRadius);
+radarCtx.stroke();
+// Render simulated tracking telemetry blips inside scanning scope
+const blipAngle = 2.4;
+const blipDistance = maxRadius * 0.6;
+const diff = (sweepAngle - blipAngle + Math.PI * 2) % (Math.PI * 2);
+if (diff < 0.8) {
+const alpha = 1 - (diff / 0.8);
+radarCtx.fillStyle = rgba(57, 230, 115, ${alpha});
+radarCtx.beginPath();
+radarCtx.arc(center + Math.cos(blipAngle) * blipDistance, center + Math.sin(blipAngle) * blipDistance, 6, 0, Math.PI * 2);
+radarCtx.fill();
+}
+// Fluctuating signal numbers
+if (Math.floor(timestamp / 500) % 4 === 0) {
+document.getElementById('drone-sig-val').innerText = (95 + Math.floor(Math.random() * 5)) + "% // STABLE_LINK";
+document.getElementById('drone-bat-val').innerText = (80 + Math.floor(Math.random() * 5)) + "% [NOMINAL]";
+}
+radarFrameId = requestAnimationFrame(renderRadarLoop);
+}
+// Defender Glitch Takeover Background Engine
+const defGlitchCanvas = document.getElementById('defGlitchCanvas');
+const defGlitchCtx = defGlitchCanvas.getContext('2d');
+let defGlitchFrameId = null;
+function resizeDefCanvas() {
+defGlitchCanvas.width = window.innerWidth;
+defGlitchCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeDefCanvas);
+resizeDefCanvas();
+function renderDefGlitchLoop(timestamp) {
+const w = defGlitchCanvas.width;
+const h = defGlitchCanvas.height;
+// Randomly flash bright white/pink bars onto background surface layer structures
+if (Math.random() > 0.95) {
+defGlitchCtx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 51, 68, 0.4)' : 'rgba(255, 255, 255, 0.15)';
+defGlitchCtx.fillRect(0, 0, w, h);
 } else {
-triggerBtn.disabled = true; triggerBtn.innerText = "SELECT NODE"; triggerBtn.classList.remove('ready');
+defGlitchCtx.fillStyle = 'rgba(10, 20, 36, 0.2)';
+defGlitchCtx.fillRect(0, 0, w, h);
+}
+// Raw scan noise layout lines
+defGlitchCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+defGlitchCtx.lineWidth = 1;
+for (let i = 0; i < 6; i++) {
+const y = Math.random() * h;
+defGlitchCtx.beginPath();
+defGlitchCtx.moveTo(0, y);
+defGlitchCtx.lineTo(w, y);
+defGlitchCtx.stroke();
+}
+defGlitchFrameId = requestAnimationFrame(renderDefGlitchLoop);
+}
+// --- GLOBAL INTERFACE NAV ROUTING TABS ---
+document.querySelectorAll('.nav-item').forEach(btn => {
+btn.addEventListener('pointerdown', (e) => {
+triggerSyntheticBeep(740, 0.04);
+document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+document.querySelectorAll('.display-panel').forEach(p => p.classList.remove('active'));
+btn.classList.add('active');
+const targetId = btn.getAttribute('data-target');
+document.getElementById(targetId).classList.add('active');
+// Kill or cycle specific frame loops to conserve resource performance layout budgets
+cancelAnimationFrame(camsFrameId);
+cancelAnimationFrame(radarFrameId);
+if (targetId === 'panel-cams') {
+resizeCamsCanvas();
+renderCamsLoop(0);
+} else if (targetId === 'panel-drone') {
+resizeRadarCanvas();
+renderRadarLoop(0);
 }
 });
-triggerBtn.addEventListener('click', () => {
-logFeed("DISTRIBUTING INTRUSIVE VIRUS INJECTION TO TARGET...");
-conn.send('FIRE_VIRUS');
-triggerBtn.classList.add('active-click');
-let count = 0;
-let t = setInterval(() => {
-playBeep(680, 0.12, 'sawtooth');
-count++; if(count >= 3) { clearInterval(t); triggerBtn.classList.remove('active-click'); }
-}, 200);
 });
-conn.on('data', (data) => {
-if(data === 'VIRUS_CLEARED') {
-logFeed("⚠️ WARNING: TARGET MANUALLY DISRUPTED VIRUS CHANNELS (HUNG UP).");
-playBeep(250, 0.4, 'sawtooth', 0.3);
+// Setup Cams Menu Sidebar Element Rows Dynamically
+const nodeContainer = document.getElementById('camsNodesContainer');
+surveillanceNodes.forEach((node, idx) => {
+const element = document.createElement('div');
+element.className = cam-node-item ${idx === 0 ? 'active' : ''};
+element.id = node.id;
+element.innerHTML = <div class="cam-node-header"> <span>${node.title}</span> <span class="cam-node-status">${node.status}</span> </div> <div class="cam-node-desc">${node.loc}</div>;
+element.addEventListener('pointerdown', () => {
+triggerSyntheticBeep(620, 0.05, 'square');
+document.querySelectorAll('.cam-node-item').forEach(i => i.classList.remove('active'));
+element.classList.add('active');
+activeCamIndex = idx;
+document.getElementById('vf-cam-name').innerText = FEED // ${node.title};
+});
+nodeContainer.appendChild(element);
+});
+// --- OFFENSIVE EXPLOIT TERMINAL OUTPUT WRITER LOGS ---
+const logWindow = document.getElementById('terminalLog');
+function writeTerminal(str) {
+const line = document.createElement('div');
+line.innerText = > ${str};
+logWindow.appendChild(line);
+logWindow.scrollTop = logWindow.scrollHeight;
+}
+// --- PEERJS ROUTING INFRASTRUCTURE ECOSYSTEM ---
+const setupScreen = document.getElementById('setup-screen');
+const attackerScreen = document.getElementById('attacker-screen');
+const defenderScreen = document.getElementById('defender-screen');
+const setupStatus = document.getElementById('setup-status');
+const commsStatusText = document.getElementById('comms-status-text');
+function appendTargetNodeUI(idName) {
+const container = document.getElementById('targetNodesList');
+container.innerHTML = <div class="target-node" id="target-peer-row"> <div class="target-info"> <div class="target-title">NODE_DEFENDER_REPLICA</div> <div class="target-meta">PEER_ID: ${idName}</div> </div> <div class="target-radio-marker"></div> </div>;
+const row = document.getElementById('target-peer-row');
+const bombBtn = document.getElementById('logicBombBtn');
+row.addEventListener('pointerdown', () => {
+triggerSyntheticBeep(680, 0.05, 'square');
+row.classList.toggle('selected');
+if (row.classList.contains('selected')) {
+selectedTargetNodeId = idName;
+bombBtn.removeAttribute('disabled');
+bombBtn.classList.add('armed');
+bombBtn.innerText = "Execute Bomb";
+writeTerminal(TARGET PARITY IDENTIFICATION MAP CONFIRMED: ${idName}. EXPLOIT SYSTEM ARMED.);
+} else {
+selectedTargetNodeId = null;
+bombBtn.setAttribute('disabled', 'true');
+bombBtn.classList.remove('armed');
+bombBtn.innerText = "No Target Linked";
 }
 });
 }
-function logFeed(msg) {
-const f = document.getElementById('terminalFeed');
-f.innerHTML += <div>> ${msg}</div>;
-if (f.childNodes.length > 4) f.removeChild(f.firstChild);
-}
-// --- DEFENDER TARGET RESPONSE SYSTEM ---
-function initDefender() {
-const key = document.getElementById('joinKey').value.trim().toUpperCase();
-if(!key) return alert("Please map an active 4-character host room key token registry string.");
-initAudio();
-document.getElementById('setup-status').innerText = "Configuring backend bypass communication proxy layer...";
-peer = new Peer();
-peer.on('open', () => {
-const connection = peer.connect(key);
-conn = connection;
-connection.on('open', () => {
-document.getElementById('setup-screen').innerHTML = <h2 class="status-pulse" style="color:var(--os-green); font-weight:900;">TUNNEL INJECTED</h2> <p style="margin-top:15px; opacity:0.7; max-width:360px; line-height:1.4;">System tracking loops attached silently. Lock your device, leave the tab focus running, and stand by for remote signal calls.</p>;
-playBeep(520, 0.15, 'sine');
+// OPTION A: INITIALIZE OFFENSIVE CONTROLLER OPERATOR NODE
+document.getElementById('mode-attacker-btn').addEventListener('pointerdown', () => {
+triggerSyntheticBeep(520, 0.08);
+setupStatus.innerText = "Registering handshake keys on routing switch server...";
+peerInstance = new Peer();
+peerInstance.on('open', (fullIdString) => {
+setupStatus.innerText = "Network handshake registry node active.";
+document.getElementById('attacker-id-display').innerText = fullIdString;
+setupScreen.style.display = 'none';
+attackerScreen.style.display = 'grid';
 });
-connection.on('data', (data) => {
-if(data === 'FIRE_VIRUS') triggerDefTakeover();
+peerInstance.on('connection', (connectionChannel) => {
+connectedSocket = connectionChannel;
+commsStatusText.innerText = "LINK ESTABLISHED // DATA_TUNNEL_PROXY RUNNING";
+writeTerminal(INBOUND LINK DETECTED. HANDSHAKE TUNNEL SUCCESSFUL FROM PEER NODE.);
+triggerSyntheticBeep(880, 0.25, 'square');
+appendTargetNodeUI(connectionChannel.peer);
+connectionChannel.on('data', (payloadData) => {
+if (payloadData === 'CLEARED_CONFIRMATION') {
+writeTerminal("⚠️ METADATA EVENT: TARGET HANDSHAKE TERMINATED BY DEFENDER (HUNG UP).");
+triggerSyntheticBeep(320, 0.5, 'sawtooth', 0.25);
+}
+});
+connectionChannel.on('close', () => {
+commsStatusText.innerText = "NETWORK SECURE // LOCAL NODE ONLY";
+writeTerminal("⚠️ METADATA EVENT: CONNECTION LINK LOST FROM TARGET POINT.");
+document.getElementById('targetNodesList').innerHTML = '';
+document.getElementById('logicBombBtn').setAttribute('disabled', 'true');
+document.getElementById('logicBombBtn').classList.remove('armed');
+document.getElementById('logicBombBtn').innerText = "No Target Linked";
 });
 });
+peerInstance.on('error', (err) => {
+console.error("PeerJS Core Error Exception Block:", err);
+setupStatus.style.color = 'var(--defense-red)';
+setupStatus.innerText = Link Failure Error: ${err.type};
+});
+});
+// OPTION B: INITIALIZE DEFENSIVE TARGET RESPONSE MODE
+document.getElementById('mode-defender-btn').addEventListener('pointerdown', () => {
+const joinKeyString = document.getElementById('joinKey').value.trim();
+if (!joinKeyString) {
+triggerSyntheticBeep(220, 0.25, 'sawtooth');
+setupStatus.style.color = 'var(--defense-red)';
+setupStatus.innerText = "Error: Input required matching Attacker key address string.";
+return;
 }
-function triggerDefTakeover() {
-document.getElementById('setup-screen').style.display = 'none';
-document.getElementById('defender-screen').style.display = 'flex';
-if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
-// Highly accurate electronic buzzing structure loop simulation
-function runAudioLoop() {
-playBeep(1350, 0.18, 'sawtooth', 0.25);
-setTimeout(() => playBeep(850, 0.12, 'square', 0.2), 80);
+triggerSyntheticBeep(520, 0.08);
+setupStatus.style.color = 'var(--accent-green)';
+setupStatus.innerText = "Routing remote target connection string interface...";
+peerInstance = new Peer();
+peerInstance.on('open', () => {
+const outConnectionTunnel = peerInstance.connect(joinKeyString);
+connectedSocket = outConnectionTunnel;
+outConnectionTunnel.on('open', () => {
+setupStatus.innerText = "Linked proxy pipe established securely. Standing by for remote command requests...";
+document.getElementById('setup-card').innerHTML = <div style="padding: 20px; font-family: monospace; font-size: 0.9rem; color: var(--accent-green);"> <div class="comms-pulse" style="margin: 0 auto 15px auto; width:10px; height:10px;"></div> PROXY LINK ATTACHED SUCCESSFULLY<br><br> <span style="color:var(--text-secondary)">System scanning routines operating completely in background profiles. Keep this page active and await incoming remote payload handshakes...</span> </div>;
+});
+outConnectionTunnel.on('data', (payloadData) => {
+if (payloadData === 'TRIGGER_LOGIC_BOMB_EXPLOIT') {
+executeDefenderTakeoverUIMask();
 }
-runAudioLoop();
-ringInterval = setInterval(runAudioLoop, 1100);
+});
+outConnectionTunnel.on('close', () => {
+alert("System Connection severed by remote Attacker node host.");
+location.reload();
+});
+});
+peerInstance.on('error', (err) => {
+console.error("PeerJS Core Error Exception Block:", err);
+setupStatus.style.color = 'var(--defense-red)';
+setupStatus.innerText = Inbound Mapping Fail: ${err.type};
+});
+});
+// --- LOGIC BOMB LAUNCH TRIGGERS (ATTACKER ACTION CLICK) ---
+document.getElementById('logicBombBtn').addEventListener('pointerdown', () => {
+if (!selectedTargetNodeId || !connectedSocket) return;
+writeTerminal("TRANSMITTING MALWARE DATA PACKETS TO REMOTE FORWARD LAYERS...");
+connectedSocket.send('TRIGGER_LOGIC_BOMB_EXPLOIT');
+let pulses = 0;
+const burstTimer = setInterval(() => {
+triggerSyntheticBeep(640, 0.1, 'sawtooth', 0.15);
+pulses++;
+if (pulses >= 3) clearInterval(burstTimer);
+}, 150);
+});
+// --- DEFENDER LOCK TAKEOVER SYSTEM LOGIC & PROGRESS MINIGAME ---
+const wipeProgressCircle = document.getElementById('wipeProgressCircle');
+const hangUpBtn = document.getElementById('hangUpBtn');
+let wipeHoldTicker = null;
+let elapsedWipeProgress = 0;
+function executeDefenderTakeoverUIMask() {
+setupScreen.style.display = 'none';
+defenderScreen.style.display = 'flex';
+resizeDefCanvas();
+renderDefGlitchLoop(0);
+engageIntrusionSoundloop();
+if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100, 50, 400]);
 }
-// --- HOLD TO DISRUPT HACK INTERACTION LOGIC (MINI-GAME) ---
-const hangupBtn = document.getElementById('hangupBtn');
-const progressCircle = document.querySelector('.progress-circle');
-function startHold(e) {
+function initiateHoldProgressWipe(e) {
 e.preventDefault();
 initAudio();
-holdProgress = 0;
-playBeep(440, 0.05, 'sine');
-holdTimer = setInterval(() => {
-holdProgress += 1.66; // Scales cleanly to reach 100% capacity over ~3.0 seconds
-if (holdProgress >= 100) {
-holdProgress = 100;
-clearInterval(holdTimer);
-executeSystemWipe();
+elapsedWipeProgress = 0;
+triggerSyntheticBeep(520, 0.05, 'sine', 0.2);
+wipeHoldTicker = setInterval(() => {
+elapsedWipeProgress += 1.67; // Maps cleanly to reach 100% mark across 3000ms span
+if (elapsedWipeProgress >= 100) {
+elapsedWipeProgress = 100;
+clearInterval(wipeHoldTicker);
+terminateVirusIntrusionSectors();
 }
-// Update SVG stroke-dashoffset tracking indicator (Circumference 283)
-const offset = 283 - (283 * holdProgress) / 100;
-progressCircle.style.strokeDashoffset = offset;
-// Low rhythmic mechanical clicking tones indicating manual cleaning cycles are active
-if(Math.floor(holdProgress) % 8 === 0) playBeep(500, 0.02, 'triangle', 0.1);
+// SVG DashOffset Circumference Map (2 * PI * Radius 55 = 345.575)
+const offsetCalc = 345.57 - (345.57 * elapsedWipeProgress) / 100;
+wipeProgressCircle.style.strokeDashoffset = offsetCalc;
+// Rhythmic mechanical confirmation sync notes
+if (Math.floor(elapsedWipeProgress) % 10 === 0) {
+triggerSyntheticBeep(480, 0.02, 'triangle', 0.1);
+}
 }, 50);
 }
-function endHold() {
-clearInterval(holdTimer);
-holdProgress = 0;
-progressCircle.style.strokeDashoffset = 283;
+function abortHoldProgressWipe() {
+if (wipeHoldTicker) {
+clearInterval(wipeHoldTicker);
+wipeHoldTicker = null;
 }
-function executeSystemWipe() {
-clearInterval(ringInterval);
-playBeep(880, 0.5, 'sine', 0.15); // Clear success ring tone
-if(conn) conn.send('VIRUS_CLEARED');
-document.getElementById('defender-screen').style.display = 'none';
-document.getElementById('setup-screen').style.display = 'flex';
-document.getElementById('setup-screen').innerHTML = <h2 style="color:var(--os-green); font-weight:900;">VIRUS PURGED</h2> <p style="margin-top:10px; opacity:0.7;">Handshake channel dropped. System firmware secure.</p>;
-setTimeout(() => { location.reload(); }, 3000); // Reload back into main choice room interface
+elapsedWipeProgress = 0;
+wipeProgressCircle.style.strokeDashoffset = 345.57;
 }
-// Universal Event Handlers accommodating standard mobile finger profiles and touch frameworks
-hangupBtn.addEventListener('mousedown', startHold);
-hangupBtn.addEventListener('mouseup', endHold);
-hangupBtn.addEventListener('mouseleave', endHold);
-hangupBtn.addEventListener('touchstart', startHold);
-hangupBtn.addEventListener('touchend', endHold);
+function terminateVirusIntrusionSectors() {
+ceaseIntrusionSoundloop();
+triggerSyntheticBeep(960, 0.4, 'sine', 0.15);
+if (connectedSocket) {
+connectedSocket.send('CLEARED_CONFIRMATION');
+}
+cancelAnimationFrame(defGlitchFrameId);
+defenderScreen.style.display = 'none';
+setupScreen.style.display = 'flex';
+document.getElementById('setup-card').innerHTML = <div style="padding: 20px; font-family: monospace; font-size: 0.9rem; color: var(--accent-green);"> VIRUS PURGED // SECURITY SECTOR CLEAR<br><br> <span style="color:var(--text-secondary)">Exploit matrix wiped safely from local storage sectors. Reloading main interface configuration frames...</span> </div>;
+setTimeout(() => { location.reload(); }, 2500);
+}
+// Pointer event listener array bounds mapping both mouse clicks and mobile surface targets cleanly
+hangUpBtn.addEventListener('pointerdown', initiateHoldProgressWipe);
+hangUpBtn.addEventListener('pointerup', abortHoldProgressWipe);
+hangUpBtn.addEventListener('pointerleave', abortHoldProgressWipe);
